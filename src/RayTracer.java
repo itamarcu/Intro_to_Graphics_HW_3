@@ -1,11 +1,8 @@
-import java.awt.Transparency;
-import java.awt.color.*;
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.color.ColorSpace;
 import java.awt.image.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.imageio.ImageIO;
 
 /**
  * Main class for ray tracing exercise.
@@ -57,11 +54,51 @@ public class RayTracer
         
     }
     
+    /* Easy to use parsing, uses static helper variable. Don't call this too many times.
+     */
+    static String[] _params;
+    static int _paramsIndex;
+    
+    private void startSmartParsing(String[] params)
+    {
+        _params = params;
+        _paramsIndex = 0;
+    }
+    
+    // See above comments
+    private int nextInt()
+    {
+        return Integer.parseInt(_params[_paramsIndex++]);
+    }
+    
+    // See above comments
+    private double nextDouble()
+    {
+        return Double.parseDouble(_params[_paramsIndex++]);
+    }
+    
+    // See above comments
+    private Vec3 nextVec3()
+    {
+        return new Vec3(nextDouble(), nextDouble(), nextDouble());
+    }
+    
+    // See above comments
+    private Color nextColor()
+    {
+        return new Color(nextDouble(), nextDouble(), nextDouble());
+    }
+    
+    /* End of the parsing-related helper methods
+    */
+    
     /**
      * Parses the scene file and creates the scene. Change this function so it generates the required objects.
      */
     private void parseScene(String sceneFileName) throws RayTracerException
     {
+        scene = new Scene();
+        
         try
         {
             FileReader fr = new FileReader(sceneFileName);
@@ -82,43 +119,58 @@ public class RayTracer
                 String code = line.substring(0, 3).toLowerCase();
                 // Split according to white space characters:
                 String[] params = line.substring(3).trim().toLowerCase().split("\\s+");
+                startSmartParsing(params); // sets static variables for the next___() methods
                 
                 switch (code)
                 {
                     case "cam":
-                        // Add code here to parse camera parameters
-                        
+                        // px   	py   	pz 	lx  	ly  	lz 	ux  	uy  	uz 	sc_dist	sc_width
+                        scene.camera = new Camera(nextVec3(), nextVec3(), nextVec3(), nextDouble(), nextDouble());
                         System.out.println(String.format("Parsed camera parameters (line %d)", lineNum));
                         break;
                     case "set":
-                        // Add code here to parse general settings parameters
-                        
+                        // bgr  	bgg  	bgb	sh_rays	rec_max SS
+                        scene.backgroundColor = nextColor();
+                        scene.shadowRayCount = nextInt();
+                        scene.maximumRecursionCount = nextInt();
+                        scene.superSamplingLevel = nextInt();
                         System.out.println(String.format("Parsed general settings (line %d)", lineNum));
                         break;
                     case "mtl":
-                        // Add code here to parse material parameters
-                        
+                        // dr    	dg    	db	sr   	sg   	sb 	rr   	rg  	rb	phong 	trans
+                        Material m = new Material(nextColor(), nextColor(), nextColor(), nextDouble(), nextDouble());
+                        scene.materials.add(m);
                         System.out.println(String.format("Parsed material (line %d)", lineNum));
                         break;
                     case "sph":
                         // Add code here to parse sphere parameters
-                        
                         // Example (you can implement this in many different ways!):
                         // Sphere sphere = new Sphere();
                         // sphere.setCenter(params[0], params[1], params[2]);
                         // sphere.setRadius(params[3]);
                         // sphere.setMaterial(params[4]);
-                        
+    
+                        // cx   	cy   	cz  	radius 	mat_idx
+                        Sphere s = new Sphere(nextVec3(), nextDouble(), nextInt());
+                        scene.spheres.add(s);
                         System.out.println(String.format("Parsed sphere (line %d)", lineNum));
                         break;
                     case "pln":
-                        // Add code here to parse plane parameters
-                        
+                        // nx	ny	nz	offset	mat_idx
+                        Plane p = new Plane(nextVec3(), nextDouble(), nextInt());
+                        scene.planes.add(p);
                         System.out.println(String.format("Parsed plane (line %d)", lineNum));
                         break;
+                    case "trg":
+                        // p0x p0y p0z   	p1x p1y p1z   	p2x p2y p2z  	 	mat_idx
+                        Triangle t = new Triangle(nextVec3(), nextVec3(), nextVec3(), nextInt());
+                        scene.triangles.add(t);
+                        System.out.println(String.format("Parsed triangle (line %d)", lineNum));
+                        break;
                     case "lgt":
-                        // Add code here to parse light parameters
-                        
+                        // px	py	pz	r	g	b	spec	shadow	width
+                        Light l = new Light(nextVec3(), nextColor(), nextDouble(), nextDouble(), nextDouble());
+                        scene.lights.add(l);
                         System.out.println(String.format("Parsed light (line %d)", lineNum));
                         break;
                     default:
