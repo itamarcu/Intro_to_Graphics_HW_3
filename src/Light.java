@@ -1,3 +1,4 @@
+
 public class Light
 {
     final Vec3 position;

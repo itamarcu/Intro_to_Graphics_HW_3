@@ -1,29 +1,54 @@
-public class Color
+public class Color extends Vec3
 {
     /**
      * R, G, B shuold all be in range [0,1] (inclusive) where 0 is black and 1 is white.
      *
      * For example, the color orange is equal to Color(1.0, 0.7, 0.0)
      */
-    public final double r, g, b;
+//    public final double r, g, b;
     
-    public Color(double r, double y, double z)
+    public Color(double r, double g, double b)
     {
-        this.r = r;
-        this.g = y;
-        this.b = z;
+    	super(r, g, b);
+//        this.r = r;
+//        this.g = y;
+//        this.b = z;
     }
     
     public Color()
     {
-        this.r = 0;
-        this.g = 0;
-        this.b = 0;
+    	super(0, 0, 0);
+//        this.r = 0;
+//        this.g = 0;
+//        this.b = 0;
+    }
+    
+    public Color plus(Color color)
+    {
+        return new Color(x + color.x, y + color.y, z + color.z);
+    }
+    
+    public Color scaledBy(double factor)
+    {
+        return new Color(x * factor, y * factor, z * factor);
+    }
+    
+    public byte getRed()
+    {
+    	return (byte)(255*x);
+    }
+    public byte getGreen()
+    {
+    	return (byte)(255*y);
+    }
+    public byte getBlue()
+    {
+    	return (byte)(255*z);
     }
     
     public String toString()
     {
-        return "Color(" + r + ", " + g + ", " + b + ")";
+        return "Color(" + x + ", " + y + ", " + z + ")";
     }
     
     /*

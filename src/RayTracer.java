@@ -1,5 +1,6 @@
 import javax.imageio.ImageIO;
-import java.awt.*;
+
+import java.awt.Transparency;
 import java.awt.color.ColorSpace;
 import java.awt.image.*;
 import java.io.*;
@@ -132,7 +133,7 @@ public class RayTracer
                         scene.backgroundColor = parse.aColor();
                         scene.shadowRayCount = parse.aInt();
                         scene.maximumRecursionCount = parse.aInt();
-                        scene.superSamplingLevel = parse.aInt();
+//                        scene.superSamplingLevel = parse.aInt();
                         System.out.println(String.format("Parsed general settings (line %d)", lineNum));
                         break;
                     case "mtl":
@@ -209,7 +210,7 @@ public class RayTracer
         //
         // Each of the red, green and blue components should be a byte, i.e. 0-255
         
-        
+        rgbData = RayCast(scene.camera, scene, imageWidth, imageHeight);
         long endTime = System.currentTimeMillis();
         Long renderTime = endTime - startTime;
         
@@ -224,6 +225,39 @@ public class RayTracer
         
     }
     
+    private byte[] RayCast(Camera camera, Scene scene, int width, int height)
+    {
+    	byte[] rgbData = new byte[imageWidth * imageHeight * 3];
+	    Vec3 E = camera.position, p;//new Vec3();	
+	    Vec3 Vz=null, Vy=null, Vx=null; // TODO: find them!!!!!!!
+//	    Vx = (1,0,0) • M;
+//		Vy = (0,1,0) • M;
+//		Vz = (0,0,1) • M;
+	    // P = E + Vz * f
+	    Vec3 P = E.plus(Vz.scaledBy(camera.screenDistance));
+	    // P0 = P - wVx - hVy	    
+	    Vec3 P0 = P.minus(Vx.scaledBy(camera.screenWidth).plus(Vy.scaledBy(imageHeight)));
+	    for (int i = 0; i < height; i++){
+		    p = P0;
+		    for (int j = 0; j < width; j++) {
+		    	int pos = (j * imageWidth + i) * 3;		    
+			    //Ray ray= E + t * (p – E); todo
+			    Shape shape = scene.FindIntersection(E, P);
+			    Color color = scene.getColor(shape);
+			    // red
+			    rgbData[pos] = (byte)color.getRed();
+			    // green
+			    rgbData[pos+1] = (byte)color.getGreen();
+			    // blue
+			    rgbData[pos+2] = (byte)color.getBlue();
+			    
+			    
+			    P.plus(Vx); // move one pixel along the vector Vx
+		    }
+		    P0.plus(Vy); // move one pixel along the vector Vy
+	    }
+	    return rgbData;
+    }
     
     //////////////////////// FUNCTIONS TO SAVE IMAGES IN PNG FORMAT //////////////////////////////////////////
     
