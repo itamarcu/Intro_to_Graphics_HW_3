@@ -34,6 +34,6 @@ public class Sphere extends Shape
         //closest point with minus, farthest point with plus
         Vec3 intersection_position = origin.plus(direction.scaledBy(projection_length - extra));
         Vec3 normal = intersection_position.minus(center).normalized();
-        return new Intersection(intersection_position, normal, materialIndex);
+        return new Intersection(intersection_position, normal, direction, materialIndex);
     }
 }

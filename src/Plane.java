@@ -28,6 +28,6 @@ public class Plane extends Shape
             return null; // plane is behind origin
         Vec3 intersection_position = origin.plus(direction.scaledBy(t));
         //TODO maybe take opposite direction normal in certain cases?
-        return new Intersection(intersection_position, normal, materialIndex);
+        return new Intersection(intersection_position, normal, direction, materialIndex);
     }
 }

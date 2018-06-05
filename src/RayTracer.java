@@ -226,6 +226,8 @@ public class RayTracer
     
     private byte[] raycastScene(Camera camera, Scene scene, int pixelWidth, int pixelHeight)
     {
+        boolean enableSuperSampling = false;
+        
         double screenHeight = camera.screenWidth / pixelWidth * pixelHeight;
         double superSamplingFactor = 1.0 / scene.superSamplingLevel;
         byte[] rgbData = new byte[imageWidth * imageHeight * 3];
@@ -243,19 +245,28 @@ public class RayTracer
             for (int x = 0; x < pixelWidth; x++)
             {
                 Color avgColor = new Color(0, 0, 0);
-                for (int xx = 0; xx < scene.superSamplingLevel; xx++)
+                if (enableSuperSampling)
                 {
-                    for (int yy = 0; yy < scene.superSamplingLevel; yy++)
+                    for (int xx = 0; xx < scene.superSamplingLevel; xx++)
                     {
-                        double randomUp = Math.random(), randomRight = Math.random();
-                        Vec3 subPixelScreenPoint = currentScreenPoint
-                                .plus(onePixelTowardsRight.scaledBy((xx + randomRight) * superSamplingFactor))
-                                .plus(onePixelTowardsUp.scaledBy((yy + randomUp) * superSamplingFactor));
-                        Vec3 rayDirection = (subPixelScreenPoint.minus(camera.position)).normalized();
-                        Intersection intersection = scene.raycast(camera.position, rayDirection);
-                        Color color = scene.getColor(intersection);
-                        avgColor = avgColor.plus(color.scaledBy(superSamplingFactor * superSamplingFactor));
+                        for (int yy = 0; yy < scene.superSamplingLevel; yy++)
+                        {
+                            double randomUp = Math.random(), randomRight = Math.random();
+                            Vec3 subPixelScreenPoint = currentScreenPoint
+                                    .plus(onePixelTowardsRight.scaledBy((xx + randomRight) * superSamplingFactor))
+                                    .plus(onePixelTowardsUp.scaledBy((yy + randomUp) * superSamplingFactor));
+                            Vec3 rayDirection = (subPixelScreenPoint.minus(camera.position)).normalized();
+                            Intersection intersection = scene.raycast(camera.position, rayDirection);
+                            Color color = scene.getColor(intersection);
+                            avgColor = avgColor.plus(color.scaledBy(superSamplingFactor * superSamplingFactor));
+                        }
                     }
+                }
+                else
+                {
+                    Vec3 rayDirection = (currentScreenPoint.minus(camera.position)).normalized();
+                    Intersection intersection = scene.raycast(camera.position, rayDirection);
+                    avgColor = scene.getColor(intersection);
                 }
                 int pixelIndex = ((pixelHeight - y - 1) * imageHeight + x) * 3;
                 rgbData[pixelIndex] = avgColor.getRed();
