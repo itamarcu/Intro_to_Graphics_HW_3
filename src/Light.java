@@ -15,4 +15,15 @@ public class Light
         this.shadowIntensity = shadowIntensity;
         this.width = width;
     }
+
+    @Override
+    public String toString() {
+        return "Light{" +
+                "position=" + position +
+                ", color=" + color +
+                ", specularIntensity=" + specularIntensity +
+                ", shadowIntensity=" + shadowIntensity +
+                ", width=" + width +
+                '}';
+    }
 }

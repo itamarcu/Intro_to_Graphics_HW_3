@@ -161,6 +161,12 @@ public class RayTracer {
 
             // It is recommended that you check here that the scene is valid,
             // for example camera settings and all necessary materials were defined.
+            if (camera == null || camera.screenWidth <= 0 || camera.screenDistance < 0)
+                throw new RayTracerException("Bad camera input");
+            int maxMaterialIndex = scene.materials.size() + 1;
+            for (Shape shape : scene.shapes)
+                if (shape.materialIndex <= 0 || shape.materialIndex >= maxMaterialIndex)
+                    throw new RayTracerException("Invalid material for shape: " + shape);
 
             System.out.println("Finished parsing scene file " + sceneFileName);
         } catch (FileNotFoundException e) {

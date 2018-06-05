@@ -16,7 +16,18 @@ public class Material
         this.phongSpecularity = phongSpecularity;
         this.transparency = transparency;
     }
-    
+
+    @Override
+    public String toString() {
+        return "Material{" +
+                "diffuseColor=" + diffuseColor +
+                ", specularColor=" + specularColor +
+                ", reflectionColor=" + reflectionColor +
+                ", phongSpecularity=" + phongSpecularity +
+                ", transparency=" + transparency +
+                '}';
+    }
+
     public Color getColor()
     {
         return GetBaseColor(); //todo?
