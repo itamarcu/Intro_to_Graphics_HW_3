@@ -21,8 +21,7 @@ public class Plane extends Shape
         double dirDotNorm = direction.dot(normal);
         if (Math.abs(dirDotNorm) < 0.01)
             return null; // plane is parallel to ray
-        Vec3 normalToPlane = normal.scaledBy(normal.scaledBy(offset).minus(origin).dot(normal));
-        double t = normalToPlane.magnitude() / dirDotNorm; // TODO make sure this code works
+        double t = (offset - origin.dot(normal)) / dirDotNorm;
         if (t <= 0)
             return null; // plane is behind origin
         if (t == Double.NaN)

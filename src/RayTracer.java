@@ -212,11 +212,6 @@ public class RayTracer
         saveImage(imageWidth, rgbData, outputFileName);
         
         System.out.println("Saved file " + outputFileName);
-        for (Shape s : scene.shapes)
-        {
-            System.out.println(s);
-            System.out.println("\t" + s.findRayIntersection(new Vec3(0, 0, 0), new Vec3(0, 0, 1)));
-        }
     }
     
     private byte[] raycastScene(Camera camera, Scene scene, int pixelWidth, int pixelHeight)

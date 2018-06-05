@@ -49,8 +49,7 @@ public class Vec3
     
     public double dot(Vec3 v2)
     {
-        double angle = Math.atan2(y, x) - Math.atan2(v2.y, v2.x);
-        return magnitude() * v2.magnitude() * Math.cos(angle);
+        return x * v2.x + y * v2.y + z * v2.z;
     }
     
     public Vec3 cross(Vec3 v2)

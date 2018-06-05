@@ -23,13 +23,16 @@ public class Sphere extends Shape
         Vec3 point_to_center = center.minus(origin);
         if (point_to_center.squareMagnitude() < radius_squared)
             return null; // point is inside sphere
-        double projection = point_to_center.dot(direction);
-        if (projection < 0)
+        double projection_length = point_to_center.dot(direction);
+        if (projection_length < 0)
             return null; // intersection is "behind" ray
-        double extra = Math.sqrt(radius_squared - projection * projection);
-        //points of intersection are: point + direction*(projection +- extra)
+        double projection_normal_length_sqr = point_to_center.squareMagnitude() - projection_length * projection_length;
+        if (projection_normal_length_sqr > radius_squared)
+            return null; // no intersection at all
+        double extra = Math.sqrt(radius_squared - projection_normal_length_sqr);
+        //points of intersection are: point + direction*(projection_length +- extra)
         //closest point with minus, farthest point with plus
-        Vec3 intersection_position = origin.plus(direction.scaledBy(projection - extra));
+        Vec3 intersection_position = origin.plus(direction.scaledBy(projection_length - extra));
         Vec3 normal = intersection_position.minus(center).normalized();
         return new Intersection(intersection_position, normal, materialIndex);
     }
