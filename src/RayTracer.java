@@ -1,6 +1,5 @@
 import javax.imageio.ImageIO;
-
-import java.awt.Transparency;
+import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.*;
 import java.io.*;
@@ -13,6 +12,7 @@ public class RayTracer
     private int imageWidth;
     private int imageHeight;
     private Scene scene;
+    private Camera camera;
     
     /**
      * Runs the ray tracer. Takes scene file, output image file and optional image size as input.
@@ -124,8 +124,8 @@ public class RayTracer
                 {
                     case "cam":
                         // px   	py   	pz 	lx  	ly  	lz 	ux  	uy  	uz 	sc_dist	sc_width
-                        scene.camera = new Camera(parse.aVec3(), parse.aVec3(), parse.aVec3(), parse.aDouble(), parse
-                                .aDouble());
+                        camera = new Camera(parse.aVec3(), parse.aVec3(), parse.aVec3(),
+                                parse.aDouble(), parse.aDouble());
                         System.out.println(String.format("Parsed camera parameters (line %d)", lineNum));
                         break;
                     case "set":
@@ -133,36 +133,38 @@ public class RayTracer
                         scene.backgroundColor = parse.aColor();
                         scene.shadowRayCount = parse.aInt();
                         scene.maximumRecursionCount = parse.aInt();
-//                        scene.superSamplingLevel = parse.aInt();
+                        scene.superSamplingLevel = parse.aInt();
                         System.out.println(String.format("Parsed general settings (line %d)", lineNum));
                         break;
                     case "mtl":
                         // dr    	dg    	db	sr   	sg   	sb 	rr   	rg  	rb	phong 	trans
-                        Material m = new Material(parse.aColor(), parse.aColor(), parse.aColor(), parse.aDouble(), parse.aDouble());
+                        Material m = new Material(parse.aColor(), parse.aColor(), parse.aColor(),
+                                parse.aDouble(), parse.aDouble());
                         scene.materials.add(m);
                         System.out.println(String.format("Parsed material (line %d)", lineNum));
                         break;
                     case "sph":
                         // cx   	cy   	cz  	radius 	mat_idx
                         Sphere s = new Sphere(parse.aVec3(), parse.aDouble(), parse.aInt());
-                        scene.spheres.add(s);
+                        scene.shapes.add(s);
                         System.out.println(String.format("Parsed sphere (line %d)", lineNum));
                         break;
                     case "pln":
                         // nx	ny	nz	offset	mat_idx
                         Plane p = new Plane(parse.aVec3(), parse.aDouble(), parse.aInt());
-                        scene.planes.add(p);
+                        scene.shapes.add(p);
                         System.out.println(String.format("Parsed plane (line %d)", lineNum));
                         break;
                     case "trg":
                         // p0x p0y p0z   	p1x p1y p1z   	p2x p2y p2z  	 	mat_idx
                         Triangle t = new Triangle(parse.aVec3(), parse.aVec3(), parse.aVec3(), parse.aInt());
-                        scene.triangles.add(t);
+                        scene.shapes.add(t);
                         System.out.println(String.format("Parsed triangle (line %d)", lineNum));
                         break;
                     case "lgt":
                         // px	py	pz	r	g	b	spec	shadow	width
-                        Light l = new Light(parse.aVec3(), parse.aColor(), parse.aDouble(), parse.aDouble(), parse.aDouble());
+                        Light l = new Light(parse.aVec3(), parse.aColor(), parse.aDouble(),
+                                parse.aDouble(), parse.aDouble());
                         scene.lights.add(l);
                         System.out.println(String.format("Parsed light (line %d)", lineNum));
                         break;
@@ -198,19 +200,7 @@ public class RayTracer
         long startTime = System.currentTimeMillis();
         
         // Create a byte array to hold the pixel data:
-        byte[] rgbData = new byte[imageWidth * imageHeight * 3];
-        
-        
-        // Put your ray tracing code here!
-        //
-        // Write pixel color values in RGB format to rgbData:
-        // Pixel [r, g] red component is in rgbData[(g * imageWidth + r) * 3]
-        //            green component is in rgbData[(g * imageWidth + r) * 3 + 1]
-        //             blue component is in rgbData[(g * imageWidth + r) * 3 + 2]
-        //
-        // Each of the red, green and blue components should be a byte, i.e. 0-255
-        
-        rgbData = RayCast(scene.camera, scene, imageWidth, imageHeight);
+        byte[] rgbData = raycastScene(camera, scene, imageWidth, imageHeight);
         long endTime = System.currentTimeMillis();
         Long renderTime = endTime - startTime;
         
@@ -222,41 +212,41 @@ public class RayTracer
         saveImage(imageWidth, rgbData, outputFileName);
         
         System.out.println("Saved file " + outputFileName);
-        
+        for (Shape s : scene.shapes)
+        {
+            System.out.println(s);
+            System.out.println("\t" + s.findRayIntersection(new Vec3(0, 0, 0), new Vec3(0, 0, 1)));
+        }
     }
     
-    private byte[] RayCast(Camera camera, Scene scene, int width, int height)
+    private byte[] raycastScene(Camera camera, Scene scene, int pixelWidth, int pixelHeight)
     {
-    	byte[] rgbData = new byte[imageWidth * imageHeight * 3];
-	    Vec3 E = camera.position, p;//new Vec3();	
-	    Vec3 Vz=null, Vy=null, Vx=null; // TODO: find them!!!!!!!
-//	    Vx = (1,0,0) • M;
-//		Vy = (0,1,0) • M;
-//		Vz = (0,0,1) • M;
-	    // P = E + Vz * f
-	    Vec3 P = E.plus(Vz.scaledBy(camera.screenDistance));
-	    // P0 = P - wVx - hVy	    
-	    Vec3 P0 = P.minus(Vx.scaledBy(camera.screenWidth).plus(Vy.scaledBy(imageHeight)));
-	    for (int i = 0; i < height; i++){
-		    p = P0;
-		    for (int j = 0; j < width; j++) {
-		    	int pos = (j * imageWidth + i) * 3;		    
-			    //Ray ray= E + t * (p – E); todo
-			    Shape shape = scene.FindIntersection(E, P);
-			    Color color = scene.getColor(shape);
-			    // red
-			    rgbData[pos] = (byte)color.getRed();
-			    // green
-			    rgbData[pos+1] = (byte)color.getGreen();
-			    // blue
-			    rgbData[pos+2] = (byte)color.getBlue();
-			    
-			    
-			    P.plus(Vx); // move one pixel along the vector Vx
-		    }
-		    P0.plus(Vy); // move one pixel along the vector Vy
-	    }
-	    return rgbData;
+        double screenHeight = camera.screenWidth / pixelWidth * pixelHeight;
+        byte[] rgbData = new byte[imageWidth * imageHeight * 3];
+        Vec3 onePixelTowardsRight = camera.right.scaledBy(camera.screenWidth / pixelWidth);
+        Vec3 onePixelTowardsUp = camera.up.scaledBy(screenHeight / pixelHeight);
+        Vec3 currentScreenPoint = camera.position
+                .plus(camera.forward.scaledBy(camera.screenDistance)) // forward by camera distance
+                .plus(camera.right.scaledBy(-camera.screenWidth / 2)) // left by half screen
+                .plus(camera.up.scaledBy(-screenHeight / 2)); // down by half screen
+        for (int y = 0; y < pixelHeight; y++)
+        {
+            for (int x = 0; x < pixelWidth; x++)
+            {
+                Vec3 rayDirection = (currentScreenPoint.minus(camera.position)).normalized();
+                Intersection intersection = scene.raycast(camera.position, rayDirection);
+                Color color = scene.getColor(intersection);
+                int pixelIndex = (x * imageWidth + y) * 3;
+                rgbData[pixelIndex] = color.getRed();
+                rgbData[pixelIndex + 1] = color.getGreen();
+                rgbData[pixelIndex + 2] = color.getBlue();
+            
+                currentScreenPoint = currentScreenPoint.plus(onePixelTowardsRight); // â†’
+            }
+            currentScreenPoint = currentScreenPoint.minus(onePixelTowardsRight.scaledBy(pixelWidth)); // â† â† â† â† â†
+            currentScreenPoint = currentScreenPoint.plus(onePixelTowardsUp); // â†‘
+        }
+        return rgbData;
     }
     
     //////////////////////// FUNCTIONS TO SAVE IMAGES IN PNG FORMAT //////////////////////////////////////////

@@ -1,14 +1,14 @@
 
 public class Material
 {
-    final Color diffuseColor;
-    final Color specularColor;
-    final Color reflectionColor;
-    final double phongSpecularity;
-    final double transparency;
+    public final Color diffuseColor;
+    public final Color specularColor;
+    public final Color reflectionColor;
+    public final double phongSpecularity;
+    public final double transparency;
     
-    public Material(Color diffuseColor, Color specularColor, Color reflectionColor, double
-            phongSpecularity, double transparency)
+    public Material(Color diffuseColor, Color specularColor, Color reflectionColor,
+                    double phongSpecularity, double transparency)
     {
         this.diffuseColor = diffuseColor;
         this.specularColor = specularColor;
@@ -17,29 +17,26 @@ public class Material
         this.transparency = transparency;
     }
     
-    public Color getColor(){
-    	return GetBaseColor();
-    	
-    	//Specular color phongSpecularity
-    	
-    	//Reflection color
-    	//Transparency
-    	// output color = (background color) * transparency + (diffuse + specular) * (1 - transparency)	+ (reflection color) 
+    public Color getColor()
+    {
+        return GetBaseColor(); //todo?
+        
+        //Specular color phongSpecularity
+        
+        //Reflection color
+        //Transparency
+        // output color = (background color) * transparency + (diffuse + specular) * (1 - transparency)	+ (reflection
+        // color)
     }
     
-    public Color getDiffuse(){
-    	return diffuseColor;
+    public Color getShade()
+    {
+        return new Color(); //todo
     }
     
-    public Color getSpecularColor(){
-    	return specularColor;
-    }
-    
-    public Color getShade(){
-    	return new Color(); //todo
-    }
-    private Color GetBaseColor(){
-    	// light * diffuseColor
-    	return diffuseColor;
+    private Color GetBaseColor()
+    {
+        // light * diffuseColor
+        return diffuseColor; //todo
     }
 }

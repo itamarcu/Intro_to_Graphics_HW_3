@@ -2,25 +2,35 @@ public class Sphere extends Shape
 {
     final Vec3 center;
     final double radius;
+    final double radius_squared;
     
     public Sphere(Vec3 center, double radius, int materialIndex)
     {
-    	super(materialIndex);
+        super(materialIndex);
         this.center = center;
         this.radius = radius;
+        radius_squared = radius * radius;
     }
     
-    public Vec3 FindIntersection(Vec3 P0, Vec3 pv)
+    public String toString()
     {
-    	double angle = Math.atan2(P0.y, P0.x) - Math.atan2(pv.y, pv.x);
-    	double L =  center.minus(P0).magnitude();
-    	double	tca = L* Math.cos(angle);
-    	double d2 =  Math.sqrt(Math.pow(L, 2)-Math.pow(tca, 2));//center.minus(P0));
-    	if (d2 > Math.pow(radius, 2)) 
-    		return null;//new Vec3(0,0,0);
-    	double thc = Math.sqrt(Math.pow(radius, 2) - d2);
-    	double t = tca - thc;// and tca + thc
-    	Vec3 V = pv.minus(P0).normalized();
-    	return P0.plus(V.scaledBy(t));   
+        return "Sphere(" + center + ", " + radius + ", " + materialIndex + ")";
+    }
+    
+    @Override
+    public Intersection findRayIntersection(Vec3 origin, Vec3 direction)
+    {
+        Vec3 point_to_center = center.minus(origin);
+        if (point_to_center.squareMagnitude() < radius_squared)
+            return null; // point is inside sphere
+        double projection = point_to_center.dot(direction);
+        if (projection < 0)
+            return null; // intersection is "behind" ray
+        double extra = Math.sqrt(radius_squared - projection * projection);
+        //points of intersection are: point + direction*(projection +- extra)
+        //closest point with minus, farthest point with plus
+        Vec3 intersection_position = origin.plus(direction.scaledBy(projection - extra));
+        Vec3 normal = intersection_position.minus(center).normalized();
+        return new Intersection(intersection_position, normal, materialIndex);
     }
 }
