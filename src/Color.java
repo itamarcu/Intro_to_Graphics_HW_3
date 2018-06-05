@@ -33,9 +33,9 @@ public class Color extends Vec3
         return new Color(x + color.x, y + color.y, z + color.z);
     }
     
-    public Color mul(Vec3 v2)
+    public Color mul(Color c2)
     {
-        return new Color(x * v2.x, y * v2.y, z * v2.z);
+        return new Color(x * c2.x, y * c2.y, z * c2.z);
     }
     
     public Color scaledBy(double factor)

@@ -21,9 +21,6 @@ public class Sphere extends Shape
     public Intersection findRayIntersection(Vec3 origin, Vec3 direction)
     {
         Vec3 point_to_center = center.minus(origin);
-        if (point_to_center.squareMagnitude() < radius_squared)
-            // point is inside sphere
-            return new Intersection(origin, point_to_center.normalized().scaledBy(-1), direction, materialIndex);
         double projection_length = point_to_center.dot(direction);
         if (projection_length < 0)
             return null; // intersection is "behind" ray
@@ -31,6 +28,10 @@ public class Sphere extends Shape
         if (projection_normal_length_sqr > radius_squared)
             return null; // no intersection at all
         double extra = Math.sqrt(radius_squared - projection_normal_length_sqr);
+        if (point_to_center.squareMagnitude() < radius_squared)
+            // point is inside sphere
+            return new Intersection(origin, origin.plus(direction.scaledBy(extra)), point_to_center.normalized()
+                    .scaledBy(-1), direction, materialIndex);
         //points of intersection are: point + direction*(projection_length +- extra)
         //closest point with minus, farthest point with plus
         Vec3 intersection_position = origin.plus(direction.scaledBy(projection_length - extra));
