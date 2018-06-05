@@ -90,9 +90,8 @@ class Scene
         {
             Vec3 reverseLightDirection = light.position.minus(point).normalized();
             Vec3 start = point.plus(reverseLightDirection.scaledBy(0.001));
-            double illumination = 1.0;
             double invCountOfShadowRays = 1.0 / shadowRayCount;
-            double shadowRayShadowFraction = 1.0 / shadowRayCount / shadowRayCount * light.shadowIntensity;
+            double shadowRayHits = shadowRayCount;
             Vec3 lightWidthRight = reverseLightDirection.anyPerpendicular().scaledBy(light.width);
             Vec3 lightWidthUp = lightWidthRight.cross(reverseLightDirection.normalized()).scaledBy(light.width);
             for (int xx = 0; xx < shadowRayCount; xx++)
@@ -111,28 +110,31 @@ class Scene
                         Intersection shadowHit = s.findRayIntersection(start, reverseShadowDirection);
                         if (shadowHit != null)
                         {
-                            illumination -= shadowRayShadowFraction;
+                            shadowRayHits --;
                             break; //TODO transparency here?
                         }
                     }
                 }
-            if (illumination > 0)
+            
+            double shadowRayFractions = (shadowRayHits / shadowRayCount) * light.shadowIntensity;
+            Color illumination = light.color.scaledBy(shadowRayFractions);
+            if (shadowRayHits > 0)
             {
                 //diffuse lighting
-                Color diffuseColor = mat.diffuseColor.scaledBy(
-                        hit.normal.dot(reverseLightDirection));
+                Color diffuseColor = illumination.mul(mat.diffuseColor.scaledBy(
+                        hit.normal.dot(reverseLightDirection)));
                 //specular lighting
                 Vec3 reflectionDirection = reverseLightDirection.reflectedBy(hit.normal);
-                Color specularColor = mat.specularColor.scaledBy(light.specularIntensity
-                        * Math.pow(reflectionDirection.dot(hit.direction), mat.phongSpecularity));
+                Color specularColor =  illumination.mul(mat.specularColor.scaledBy(light.specularIntensity
+                        * Math.pow(reflectionDirection.dot(hit.direction), mat.phongSpecularity)));
     
                 color = color.plus(
-                        diffuseColor.plus(specularColor).scaledBy(illumination * (1 - mat.transparency)));
+                        diffuseColor.plus(specularColor).scaledBy((1 - mat.transparency)));
             }
         }
     
         // Reflection color
-        Vec3 mirrorDir = hit.direction.scaledBy(-1).reflectedBy(hit.normal);
+        Vec3 mirrorDir = hit.getReflactionVector();
         Intersection rayMirror = raycast(hit.position, mirrorDir);
         Color reflectionColor = getColor(rayMirror, recursionCount + 1).mul(mat.reflectionColor);
         color = color.plus(reflectionColor);
@@ -140,7 +142,7 @@ class Scene
         // Transparency color
         if (mat.transparency > 0)
         {
-            Intersection nextSurface = raycast(hit.position.plus(hit.direction.scaledBy(0.001)), hit.direction);
+            Intersection nextSurface = raycast(hit.outPosition, hit.direction);
             color = color.plus(getColor(nextSurface, recursionCount + 1).scaledBy(mat.transparency));
         }
         

@@ -1,8 +1,10 @@
 import javax.imageio.ImageIO;
+
 import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.*;
 import java.io.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Main class for ray tracing exercise.
@@ -281,8 +283,19 @@ public class RayTracer
                 lastSecPrinted = currentSec;
             }
         }
-        
+        System.out.printf("Finished runing in: %s\n", GetFormattedInterval(System.currentTimeMillis() - startTime));
         return rgbData;
+    }
+    
+    private static String GetFormattedInterval(final long ms) {
+        long millis = ms % 1000;
+        long x = ms / 1000;
+        long seconds = x % 60;
+        x /= 60;
+        long minutes = x % 60;
+        x /= 60;
+        long hours = x % 24;
+        return String.format("%02d:%02d:%02d.%03d", hours, minutes, seconds, millis);
     }
     
     //////////////////////// FUNCTIONS TO SAVE IMAGES IN PNG FORMAT //////////////////////////////////////////
