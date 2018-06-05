@@ -9,17 +9,11 @@ public class Color extends Vec3
     public Color(double r, double g, double b)
     {
         super(clamp(r), clamp(g), clamp(b));
-        //        this.r = r;
-        //        this.g = y;
-        //        this.b = z;
     }
     
     public Color()
     {
         super(0, 0, 0);
-        //        this.r = 0;
-        //        this.g = 0;
-        //        this.b = 0;
     }
     
     /**
@@ -37,6 +31,11 @@ public class Color extends Vec3
     public Color plus(Color color)
     {
         return new Color(x + color.x, y + color.y, z + color.z);
+    }
+    
+    public Color mul(Vec3 v2)
+    {
+        return new Color(x * v2.x, y * v2.y, z * v2.z);
     }
     
     public Color scaledBy(double factor)

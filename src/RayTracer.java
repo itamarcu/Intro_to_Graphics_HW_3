@@ -256,7 +256,7 @@ public class RayTracer
                                     .plus(onePixelTowardsUp.scaledBy((yy + randomUp) * superSamplingFactor));
                             Vec3 rayDirection = (subPixelScreenPoint.minus(camera.position)).normalized();
                             Intersection intersection = scene.raycast(camera.position, rayDirection);
-                            Color color = scene.getColor(intersection);
+                            Color color = scene.getColor(intersection, 0);
                             avgColor = avgColor.plus(color.scaledBy(superSamplingFactor * superSamplingFactor));
                         }
                 }
@@ -264,16 +264,16 @@ public class RayTracer
                 {
                     Vec3 rayDirection = (currentScreenPoint.minus(camera.position)).normalized();
                     Intersection intersection = scene.raycast(camera.position, rayDirection);
-                    avgColor = scene.getColor(intersection);
+                    avgColor = scene.getColor(intersection, 0);
                 }
                 int pixelIndex = ((pixelHeight - y - 1) * imageHeight + x) * 3;
                 rgbData[pixelIndex] = avgColor.getRed();
                 rgbData[pixelIndex + 1] = avgColor.getGreen();
                 rgbData[pixelIndex + 2] = avgColor.getBlue();
-                currentScreenPoint = currentScreenPoint.plus(onePixelTowardsRight); // →
+                currentScreenPoint = currentScreenPoint.plus(onePixelTowardsRight); // â†’
             }
-            currentScreenPoint = currentScreenPoint.minus(onePixelTowardsRight.scaledBy(pixelWidth)); // ← ← ← ← ←
-            currentScreenPoint = currentScreenPoint.plus(onePixelTowardsUp); // ↑
+            currentScreenPoint = currentScreenPoint.minus(onePixelTowardsRight.scaledBy(pixelWidth)); // â†� â†� â†� â†� â†�
+            currentScreenPoint = currentScreenPoint.plus(onePixelTowardsUp); // â†‘
             long currentSec = (System.currentTimeMillis() - startTime) / 1000;
             if (currentSec != lastSecPrinted)
             {

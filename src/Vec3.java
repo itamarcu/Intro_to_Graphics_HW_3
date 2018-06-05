@@ -71,6 +71,11 @@ public class Vec3
         return x * v2.x + y * v2.y + z * v2.z;
     }
     
+    public Vec3 mul(Vec3 v2)
+    {
+        return new Vec3(x * v2.x, y * v2.y, z * v2.z);
+    }
+    
     public Vec3 cross(Vec3 v2)
     {
         double x1 = x, x2 = v2.x, y1 = y, y2 = v2.y, z1 = z, z2 = v2.z;
