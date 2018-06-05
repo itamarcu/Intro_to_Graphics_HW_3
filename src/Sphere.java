@@ -22,8 +22,8 @@ public class Sphere extends Shape
     {
         Vec3 point_to_center = center.minus(origin);
         if (point_to_center.squareMagnitude() < radius_squared)
-            return new Intersection(origin, point_to_center.normalized().scaledBy(-1), direction, materialIndex); //
-        // point is inside sphere
+            // point is inside sphere
+            return new Intersection(origin, point_to_center.normalized().scaledBy(-1), direction, materialIndex);
         double projection_length = point_to_center.dot(direction);
         if (projection_length < 0)
             return null; // intersection is "behind" ray

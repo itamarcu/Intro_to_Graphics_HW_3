@@ -92,7 +92,8 @@ class Scene
                     break; //TODO transparency here?
                 }
             }
-            if (lightReaches)
+            double fractionOfRemainingLight = 1 - (lightReaches ? 0 : light.shadowIntensity);
+            if (fractionOfRemainingLight > 0)
             {
                 //diffuse lighting
                 Color diffuseColor = mat.diffuseColor.scaledBy(
@@ -103,7 +104,7 @@ class Scene
                         * Math.pow(reflectionDirection.dot(hit.direction), mat.phongSpecularity));
     
                 color = color.plus(
-                        diffuseColor.plus(specularColor).scaledBy(1 - mat.transparency));
+                        diffuseColor.plus(specularColor).scaledBy(fractionOfRemainingLight * (1 - mat.transparency)));
             }
         }
         return color;
