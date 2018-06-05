@@ -15,12 +15,6 @@ public class Intersection
         this.materialIndex = materialIndex;
     }
     
-    public Vec3 getReflactionVector()
-	{
-		// R = V - 2(V N) N - calculate the reflection vector
-		return direction.minus(normal.scaledBy(2 * direction.dot(normal)));
-	}
-    
     @Override
     public String toString()
     {

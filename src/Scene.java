@@ -24,9 +24,6 @@ class Scene
     
     /**
      * Calculates for a given point and direction the closest shape it hits
-     * @param point
-     * @param direction
-     * @return
      */
     public Intersection raycast(Vec3 point, Vec3 direction)
     {
@@ -73,12 +70,9 @@ class Scene
     //    }
     
     /**
-     * Returns the color of the intersection,
-     * if maximumRecursionCount is reached, or there is no object intersected returns background
-     * otherwise, calculates - diffused + specular + transparency + reflection
-     * @param hit
-     * @param recursionCount
-     * @return
+     * Returns the color of the intersection, continues recursively.
+     * If maximumRecursionCount is reached, or there is no object intersected, returns background color.
+     * Otherwise, calculates - diffused + specular + transparency + reflection
      */
     public Color getColor(Intersection hit, int recursionCount)
     {
