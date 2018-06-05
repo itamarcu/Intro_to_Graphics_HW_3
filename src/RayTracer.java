@@ -248,7 +248,6 @@ public class RayTracer
                 if (enableSuperSampling)
                 {
                     for (int xx = 0; xx < scene.superSamplingLevel; xx++)
-                    {
                         for (int yy = 0; yy < scene.superSamplingLevel; yy++)
                         {
                             double randomUp = Math.random(), randomRight = Math.random();
@@ -260,7 +259,6 @@ public class RayTracer
                             Color color = scene.getColor(intersection);
                             avgColor = avgColor.plus(color.scaledBy(superSamplingFactor * superSamplingFactor));
                         }
-                    }
                 }
                 else
                 {

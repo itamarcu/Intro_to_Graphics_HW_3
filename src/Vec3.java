@@ -100,4 +100,10 @@ public class Vec3
         //        Vec3 perp = this.projectionPerpendicularTo(normal);
         //        return this.minus(perp).minus(perp);
     }
+    
+    public Vec3 anyPerpendicular()
+    {
+        // adding some extra positive to get a different vector
+        return this.cross(new Vec3(this.x + 17, this.y + 17, this.z + 17)).normalized();
+    }
 }
