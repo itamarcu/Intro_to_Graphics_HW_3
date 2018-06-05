@@ -44,49 +44,55 @@ class Scene {
         return materials.get(materialIndex - 1);
     }
 
-    public Color getColor(Intersection hit) {
-        if (hit == null)
-            return backgroundColor;
-        Material mat = getMaterial(hit.materialIndex);
-        Color color = backgroundColor.scaledBy(mat.transparency).plus((mat.diffuseColor.plus(mat.specularColor)).scaledBy(1 - mat.transparency));
-        //ambient* mat.getDiffuse();
-        for (Light light : lights) {
-            //todo
-//			color=color.plus(mat.getShade());
-//			(ray, hit, L->getDir(), L->getColor());
-        }
-        return color;
-    }
-
 //    public Color getColor(Intersection hit) {
 //        if (hit == null)
 //            return backgroundColor;
-//
 //        Material mat = getMaterial(hit.materialIndex);
-//        Color color = new Color(0, 0, 0);
-//
-//        //ambient lighting
-//        color = color.plus(backgroundColor);
-//
-//        Vec3 point = hit.position;
+    //        Color color = backgroundColor.scaledBy(mat.transparency).plus((mat.diffuseColor.plus(mat.specularColor)
+    // ).scaledBy(1 - mat.transparency));
+    //        //ambient* mat.getDiffuse();
 //        for (Light light : lights) {
-//            Vec3 direction = light.position.minus(point).normalized();
-//            Vec3 start = point.plus(direction.scaledBy(1.001));
-//            boolean lightReaches = true;
-//            for (Shape s : shapes) {
-//                Intersection shadowHit = s.findRayIntersection(start, direction);
-//                if (shadowHit != null) {
-//                    lightReaches = false;
-//                    break; //TODO transparency here?
-//                }
-//            }
-//            if (lightReaches) {
-//                //diffuse lighting
-//                color = color.plus(mat.diffuseColor.scaledBy(hit.normal.dot(direction)));
-//                //specular lighting
-//            }
+    //            //todo
+    ////			color=color.plus(mat.getShade());
+    ////			(ray, hit, L->getDir(), L->getColor());
 //        }
 //        return color;
 //    }
+    
+    public Color getColor(Intersection hit)
+    {
+        if (hit == null)
+            return backgroundColor;
+        
+        Material mat = getMaterial(hit.materialIndex);
+        Color color = new Color(0, 0, 0);
+        
+        //ambient lighting
+        color = color.plus(backgroundColor).scaledBy(mat.transparency);
+        
+        Vec3 point = hit.position;
+        for (Light light : lights)
+        {
+            Vec3 direction = light.position.minus(point).normalized();
+            Vec3 start = point.plus(direction.scaledBy(1.001));
+            boolean lightReaches = true;
+            for (Shape s : shapes)
+            {
+                Intersection shadowHit = s.findRayIntersection(start, direction);
+                if (shadowHit != null)
+                {
+                    lightReaches = false;
+                    break; //TODO transparency here?
+                }
+            }
+            if (lightReaches)
+            {
+                //diffuse lighting
+                color = color.plus(mat.diffuseColor.scaledBy(hit.normal.dot(direction))).scaledBy(1 - mat.transparency);
+                //specular lighting
+            }
+        }
+        return color;
+    }
 
 }

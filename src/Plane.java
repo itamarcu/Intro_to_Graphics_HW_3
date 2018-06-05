@@ -6,7 +6,7 @@ public class Plane extends Shape
     public Plane(Vec3 normal, double offset, int materialIndex)
     {
         super(materialIndex);
-        this.normal = normal;
+        this.normal = normal.normalized();
         this.offset = offset;
     }
     

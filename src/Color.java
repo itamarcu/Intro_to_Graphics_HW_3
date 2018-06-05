@@ -8,7 +8,7 @@ public class Color extends Vec3
     //    public final double r, g, b;
     public Color(double r, double g, double b)
     {
-        super(r, g, b);
+        super(clamp(r), clamp(g), clamp(b));
         //        this.r = r;
         //        this.g = y;
         //        this.b = z;
@@ -20,6 +20,18 @@ public class Color extends Vec3
         //        this.r = 0;
         //        this.g = 0;
         //        this.b = 0;
+    }
+    
+    /**
+     * Clamp to [0,1]
+     */
+    private static double clamp(double x)
+    {
+        if (x < 0)
+            return 0;
+        if (x > 1)
+            return 1;
+        return x;
     }
     
     public Color plus(Color color)
