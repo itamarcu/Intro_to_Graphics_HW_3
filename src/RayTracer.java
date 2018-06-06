@@ -1,10 +1,8 @@
 import javax.imageio.ImageIO;
-
 import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.*;
 import java.io.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Main class for ray tracing exercise.
@@ -15,16 +13,18 @@ public class RayTracer
     private int imageHeight;
     private Scene scene;
     private Camera camera;
-    
+    private static String grayscale_string = "█▓▒▣ʘo•· ";
+    private static boolean REVERSE_ASCII_BLACK_AND_WHITE = false;
     /**
      * Runs the ray tracer. Takes scene file, output image file and optional image size as input.
      */
     public static void main(String[] args)
     {
+        if (REVERSE_ASCII_BLACK_AND_WHITE)
+            grayscale_string = (new StringBuilder(grayscale_string)).reverse().toString();
         
         try
         {
-            
             RayTracer tracer = new RayTracer();
             
             // Default values:
@@ -37,8 +37,8 @@ public class RayTracer
             
             String sceneFileName = args[0];
             String outputFileName = args[1];
-            
-            if (args.length > 3)
+    
+            if (args.length >= 4)
             {
                 tracer.imageWidth = Integer.parseInt(args[2]);
                 tracer.imageHeight = Integer.parseInt(args[3]);
@@ -238,7 +238,11 @@ public class RayTracer
         Vec3 currentScreenPoint = camera.position
                 .plus(camera.forward.scaledBy(camera.screenDistance)) // forward by camera distance
                 .plus(camera.right.scaledBy(-camera.screenWidth / 2)) // left by half screen
-                .plus(camera.up.scaledBy(-screenHeight / 2)); // down by half screen
+                .plus(camera.up.scaledBy(screenHeight / 2)); // up by half screen
+    
+        int ascii_print_width = 78;
+        int ascii_x_skip = pixelWidth / ascii_print_width;
+        int ascii_y_skip = pixelHeight / ascii_print_width * 2;
         
         long startTime = System.currentTimeMillis();
         long lastSecPrinted = 0;
@@ -268,26 +272,37 @@ public class RayTracer
                     Intersection intersection = scene.raycast(camera.position, rayDirection);
                     avgColor = scene.getColor(intersection, 0);
                 }
-                int pixelIndex = ((pixelHeight - y - 1) * imageHeight + x) * 3;
+                int pixelIndex = (y * imageHeight + x) * 3;
                 rgbData[pixelIndex] = avgColor.getRed();
                 rgbData[pixelIndex + 1] = avgColor.getGreen();
                 rgbData[pixelIndex + 2] = avgColor.getBlue();
-                currentScreenPoint = currentScreenPoint.plus(onePixelTowardsRight); // â†’
+                currentScreenPoint = currentScreenPoint.plus(onePixelTowardsRight);
+    
+                if (x % ascii_x_skip == 0 && y % ascii_y_skip == 0)
+                {
+                    double grayscale = (avgColor.x + avgColor.y + avgColor.z) / 3;
+                    System.out.print(grayscale_string.charAt((int) (grayscale * grayscale_string.length() * 0.99)));
+                }
             }
-            currentScreenPoint = currentScreenPoint.minus(onePixelTowardsRight.scaledBy(pixelWidth)); // â†� â†� â†� â†� â†�
-            currentScreenPoint = currentScreenPoint.plus(onePixelTowardsUp); // â†‘
-            long currentSec = (System.currentTimeMillis() - startTime) / 1000;
-            if (currentSec != lastSecPrinted)
-            {
-                System.out.printf("%d%% complete...\n", 100 * y / pixelHeight);
-                lastSecPrinted = currentSec;
-            }
+            if (y % ascii_y_skip == 0)
+                System.out.println();
+            currentScreenPoint = currentScreenPoint.minus(onePixelTowardsRight.scaledBy(pixelWidth)); // â†� â†� â†�
+            // â†� â†�
+            currentScreenPoint = currentScreenPoint.minus(onePixelTowardsUp); // top to bottom
+    
+            //            long currentSec = (System.currentTimeMillis() - startTime) / 1000;
+            //            if (currentSec != lastSecPrinted)
+            //            {
+            //                System.out.printf("%d%% complete...\n", 100 * y / pixelHeight);
+            //                lastSecPrinted = currentSec;
+            //            }
         }
-        System.out.printf("Finished runing in: %s\n", GetFormattedInterval(System.currentTimeMillis() - startTime));
+        System.out.printf("Finished running in: %s\n", GetFormattedInterval(System.currentTimeMillis() - startTime));
         return rgbData;
     }
     
-    private static String GetFormattedInterval(final long ms) {
+    private static String GetFormattedInterval(final long ms)
+    {
         long millis = ms % 1000;
         long x = ms / 1000;
         long seconds = x % 60;

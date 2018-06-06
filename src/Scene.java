@@ -1,8 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.scene.AmbientLight;
-
 class Scene
 {
     //General settings / singletons
@@ -142,7 +140,7 @@ class Scene
     
                 color = color.plus(
                         diffuseColor.plus(specularColor).scaledBy((1 - mat.transparency)));
-            }            
+            }
         }
         
         // Reflection color
