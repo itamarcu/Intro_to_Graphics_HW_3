@@ -245,7 +245,7 @@ public class RayTracer
         int ascii_y_skip = pixelHeight / ascii_print_width * 2;
         
         long startTime = System.currentTimeMillis();
-        long lastSecPrinted = 0;
+        //        long lastSecPrinted = 0;
         for (int y = 0; y < pixelHeight; y++)
         {
             for (int x = 0; x < pixelWidth; x++)
