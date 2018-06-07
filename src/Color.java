@@ -1,19 +1,22 @@
-public class Color extends Vec3
+public class Color
 {
     /**
-     * R, G, B should all be in range [0,1] (inclusive) where 0 is black and 1 is white.
+     * R, G, B are clamped to range [0,1] (inclusive) where 0 is black and 1 is white.
      * <p>
      * For example, the color orange is equal to Color(1.0, 0.7, 0.0)
      */
-    //    public final double r, g, b;
+    public final double r, g, b;
+    
     public Color(double r, double g, double b)
     {
-        super(clamp(r), clamp(g), clamp(b));
+        this.r = clamp(r);
+        this.g = clamp(g);
+        this.b = clamp(b);
     }
     
     public Color()
     {
-        super(0, 0, 0);
+        this(0, 0, 0);
     }
     
     /**
@@ -30,58 +33,12 @@ public class Color extends Vec3
     
     public Color plus(Color color)
     {
-        return new Color(x + color.x, y + color.y, z + color.z);
+        return new Color(r + color.r, g + color.g, b + color.b);
     }
     
     public Color mul(Color c2)
     {
-        return new Color(x * c2.x, y * c2.y, z * c2.z);
-    }
-    
-    public Color scaledBy(double factor)
-    {
-        return new Color(x * factor, y * factor, z * factor);
-    }
-    
-    public byte getRed()
-    {
-        return (byte) (255 * x);
-    }
-    
-    public byte getGreen()
-    {
-        return (byte) (255 * y);
-    }
-    
-    public byte getBlue()
-    {
-        return (byte) (255 * z);
-    }
-    
-    public String toString()
-    {
-        return "Color(" + x + ", " + y + ", " + z + ")";
-    }
-    
-    /*
-    public double squareMagnitude()
-    {
-        return r * r + g * g + b * b;
-    }
-    
-    public double magnitude()
-    {
-        return Math.sqrt(squareMagnitude());
-    }
-    
-    public Color plus(Color v2)
-    {
-        return new Color(r + v2.r, g + v2.g, b + v2.b);
-    }
-    
-    public Color minus(Color v2)
-    {
-        return new Color(r - v2.r, g - v2.g, b - v2.b);
+        return new Color(r * c2.r, g * c2.g, b * c2.b);
     }
     
     public Color scaledBy(double factor)
@@ -89,14 +46,28 @@ public class Color extends Vec3
         return new Color(r * factor, g * factor, b * factor);
     }
     
-    public double dot(Color v2)
+    public byte getRed()
     {
-        return r * v2.r + g * v2.g + b * v2.b;
+        return (byte) (255 * r);
     }
     
-    public Color cross(Color v2)
+    public byte getGreen()
     {
-        double x1 = r, x2 = v2.r, y1 = g, y2 = v2.g, z1 = b, z2 = v2.b;
-        return new Color(y1 * z2 - z1 * y2, z1 * x2 - x1 * z2, x1 * y2 - y1 * x2);
-    }*/
+        return (byte) (255 * g);
+    }
+    
+    public byte getBlue()
+    {
+        return (byte) (255 * b);
+    }
+    
+    public String toString()
+    {
+        return "Color(" + r + ", " + g + ", " + b + ")";
+    }
+    
+    public double grayscale()
+    {
+        return (r + g + b) / 3;
+    }
 }

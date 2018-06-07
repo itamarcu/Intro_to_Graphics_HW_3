@@ -16,6 +16,7 @@ public class RayTracer
     private static String grayscale_string = "█▓▒@ʘo•· ";
     private static boolean REVERSE_ASCII_BLACK_AND_WHITE = false;
     private static boolean ENABLE_SUPER_SAMPLING = false; // true will make it much slower
+    private static boolean SKIP_EVERY_SECOND_ASCII_LINE = true; // should be true unless your letters are square
     
     /**
      * Runs the ray tracer. Takes scene file, output image file and optional image size as input.
@@ -247,7 +248,7 @@ public class RayTracer
         
         int ascii_print_width = 78;
         int ascii_x_skip = pixelWidth / ascii_print_width;
-        int ascii_y_skip = pixelHeight / ascii_print_width * 2;
+        int ascii_y_skip = pixelHeight / ascii_print_width * (SKIP_EVERY_SECOND_ASCII_LINE ? 2 : 1);
         
         long startTime = System.currentTimeMillis();
         //        long lastSecPrinted = 0;
@@ -263,11 +264,11 @@ public class RayTracer
                         {
                             double randomUp = Math.random(), randomRight = Math.random();
                             Vec3 subPixelScreenPoint = currentScreenPoint
-                                    .plus(onePixelTowardsRight.scaledBy((xx + randomRight - 0.5) * superSamplingFactor))
-                                    .plus(onePixelTowardsDown.scaledBy((yy + randomUp - 0.5) * superSamplingFactor));
+                                    .plus(onePixelTowardsRight.scaledBy((xx + randomRight) * superSamplingFactor))
+                                    .plus(onePixelTowardsDown.scaledBy((yy + randomUp) * superSamplingFactor));
                             Vec3 rayDirection = (subPixelScreenPoint.minus(camera.position)).normalized();
                             Intersection intersection = scene.raycast(camera.position, rayDirection);
-                            Color color = scene.getColor(intersection, 0);
+                            Color color = scene.getColor(intersection, 0, 1);
                             avgColor = avgColor.plus(color.scaledBy(superSamplingFactor * superSamplingFactor));
                         }
                 }
@@ -275,7 +276,7 @@ public class RayTracer
                 {
                     Vec3 rayDirection = (currentScreenPoint.minus(camera.position)).normalized();
                     Intersection intersection = scene.raycast(camera.position, rayDirection);
-                    avgColor = scene.getColor(intersection, 0);
+                    avgColor = scene.getColor(intersection, 0, 1);
                 }
                 int pixelIndex = (y * imageHeight + x) * 3;
                 rgbData[pixelIndex] = avgColor.getRed();
@@ -283,18 +284,20 @@ public class RayTracer
                 rgbData[pixelIndex + 2] = avgColor.getBlue();
                 currentScreenPoint = currentScreenPoint.plus(onePixelTowardsRight);
     
+                // Print ascii drawing
                 if (x % ascii_x_skip == 0 && y % ascii_y_skip == 0)
-                {
-                    double grayscale = (avgColor.x + avgColor.y + avgColor.z) / 3;
-                    System.out.print(grayscale_string.charAt((int) (grayscale * grayscale_string.length() * 0.99)));
-                }
+                    System.out.print(grayscale_string.charAt(
+                            (int) (avgColor.grayscale() * grayscale_string.length() * 0.99)));
             }
+    
+            // Print ascii drawing
             if (y % ascii_y_skip == 0)
                 System.out.println();
-            currentScreenPoint = currentScreenPoint.minus(onePixelTowardsRight.scaledBy(pixelWidth)); // â†� â†� â†�
-            // â†� â†�
+    
+            currentScreenPoint = currentScreenPoint.minus(onePixelTowardsRight.scaledBy(pixelWidth));
             currentScreenPoint = currentScreenPoint.plus(onePixelTowardsDown); // top to bottom
-            
+    
+            // Print percentage done
             //            long currentSec = (System.currentTimeMillis() - startTime) / 1000;
             //            if (currentSec != lastSecPrinted)
             //            {

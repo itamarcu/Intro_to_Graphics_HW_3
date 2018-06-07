@@ -93,17 +93,15 @@ public class Vec3
     }
     
     /*
-     * ↖     ↗
+     * \     ↗
      *  \ | /
-     *   \|/
+     *   ↘|/
      * ---+---
      */
     public Vec3 reflectedBy(Vec3 normal)
     {
         normal = normal.normalized();
         return this.minus(normal.scaledBy(2 * this.dot(normal)));
-        //        Vec3 perp = this.projectionPerpendicularTo(normal);
-        //        return this.minus(perp).minus(perp);
     }
     
     public Vec3 anyPerpendicular()

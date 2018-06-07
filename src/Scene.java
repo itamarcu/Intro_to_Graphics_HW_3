@@ -69,26 +69,30 @@ class Scene
     //        return color;
     //    }
     
+    private static final double MINIMUM_CONTRIBUTION = 1.0 / 256;
+    
     /**
      * Returns the color of the intersection, continues recursively.
-     * If maximumRecursionCount is reached, or there is no object intersected, returns background color.
+     * If maximumRecursionCount is reached, or there is no object intersected, or the contribution
+     * is too low - returns background color.
      * Otherwise, calculates - diffused + specular + transparency + reflection
      */
-    public Color getColor(Intersection hit, int recursionCount)
+    public Color getColor(Intersection hit, int recursionCount, double contribution)
     {
-        if (hit == null || recursionCount == maximumRecursionCount)
+        if (hit == null || recursionCount == maximumRecursionCount || contribution < MINIMUM_CONTRIBUTION)
             return backgroundColor;
     
         Material mat = getMaterial(hit.materialIndex);
         Color color = new Color(0, 0, 0);
         
         //ambient lighting
-        color = color.plus(backgroundColor).scaledBy(mat.transparency);
+        color = color.plus(backgroundColor.mul(mat.diffuseColor).scaledBy(mat.transparency));
         
         Vec3 point = hit.position;
         for (Light light : lights)
         {
             Vec3 reverseLightDirection = light.position.minus(point).normalized();
+            Vec3 lightReflectionDirection = reverseLightDirection.reflectedBy(hit.normal).normalized(); //is inverted
             Vec3 start = point.plus(reverseLightDirection.scaledBy(0.001));
             double illumination = 1.0;
             double invCountOfShadowRays = 1.0 / shadowRayCount;
@@ -105,7 +109,7 @@ class Scene
                                     (-shadowRayCount / 2 + xx + randomRight - 0.5) * invCountOfShadowRays))
                             .plus(lightWidthDown.scaledBy(
                                     (-shadowRayCount / 2 + yy + randomUp - 0.5) * invCountOfShadowRays));
-            
+    
                     Vec3 reverseShadowDirection = pointNearLight.minus(start).normalized();
                     rayLength = start.minus(pointNearLight).magnitude();
                     double fractionOfLightLeftInRay = 1.0;
@@ -115,45 +119,46 @@ class Scene
                         if (shadowHit != null && shadowHit.position.minus(start).magnitude() < rayLength)
                         {
                             fractionOfLightLeftInRay -= (1 - getMaterial(s.materialIndex).transparency);
-                            // TODO  * light.shadowIntensity ??? (seems like it works without)
                             if (fractionOfLightLeftInRay < 0)
                             {
                                 fractionOfLightLeftInRay = 0;
-                                break; //TODO transparency here?
+                                break;
                             }
                         }
                     }
+                    // TODO  * light.shadowIntensity ??? (seems like it works without)
                     illumination -= shadowRayShadowFraction * (1 - fractionOfLightLeftInRay);
                 }
-            
-            Color lightAmount = light.color.scaledBy(illumination);
             
             if (illumination > 0)
             {
                 //diffuse lighting
-                Color diffuseColor = lightAmount.mul(mat.diffuseColor.scaledBy(
+                Color diffuseColor = light.color.mul(mat.diffuseColor.scaledBy(
                         hit.normal.dot(reverseLightDirection)));
                 //specular lighting
-                Vec3 reflectionDirection = reverseLightDirection.reflectedBy(hit.normal);
-                Color specularColor = lightAmount.mul(mat.specularColor.scaledBy(light.specularIntensity
-                        * Math.pow(reflectionDirection.dot(hit.direction), mat.phongSpecularity)));
-    
+                Color specularColor = light.color.mul(mat.specularColor.scaledBy(light.specularIntensity
+                        * Math.pow(Math.abs(lightReflectionDirection.dot(hit.direction)), mat.phongSpecularity)));
+                
                 color = color.plus(
-                        diffuseColor.plus(specularColor).scaledBy(1 - mat.transparency));
+                        diffuseColor.plus(specularColor).scaledBy((1 - mat.transparency) * illumination));
             }
         }
         
         // Reflection color
-        Vec3 mirrorDir = hit.getReflactionVector();
-        Intersection rayMirror = raycast(hit.position, mirrorDir);
-        Color reflectionColor = getColor(rayMirror, recursionCount + 1).mul(mat.reflectionColor);
+        Vec3 hitReflectionDirection = hit.direction.reflectedBy(hit.normal);
+        Intersection rayMirror = raycast(
+                hit.position.plus(hitReflectionDirection.scaledBy(0.001)), hitReflectionDirection);
+        Color reflectionColor = mat.reflectionColor.mul(getColor(rayMirror, recursionCount + 1,
+                contribution * mat.reflectionColor.grayscale()));
         color = color.plus(reflectionColor);
         
         // Transparency color
         if (mat.transparency > 0)
         {
-            Intersection nextSurface = raycast(hit.outPosition, hit.direction);
-            color = color.plus(getColor(nextSurface, recursionCount + 1).scaledBy(mat.transparency));
+            Intersection nextSurface = raycast(hit.position, hit.direction);
+            color = color.plus(getColor(nextSurface, recursionCount + 1,
+                    contribution * mat.transparency)
+                    .scaledBy(mat.transparency));
         }
         
         return color;

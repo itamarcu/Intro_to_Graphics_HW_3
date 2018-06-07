@@ -29,14 +29,26 @@ public class Sphere extends Shape
             return null; // no intersection at all
         double extra = Math.sqrt(radius_squared - projection_normal_length_sqr);
         if (point_to_center.squareMagnitude() < radius_squared)
-            // point is inside sphere
-            return new Intersection(origin, origin.plus(direction.scaledBy(extra)), point_to_center.normalized()
-                    .scaledBy(-1), direction, materialIndex);
+            return null; // point is inside sphere
         //points of intersection are: point + direction*(projection_length +- extra)
         //closest point with minus, farthest point with plus
         Vec3 intersection_position = origin.plus(direction.scaledBy(projection_length - extra));
-        Vec3 out_position = origin.plus(direction.scaledBy(projection_length + extra));
         Vec3 normal = intersection_position.minus(center).normalized();
-        return new Intersection(intersection_position, out_position, normal, direction, materialIndex);
+        return new Intersection(intersection_position, normal, direction, materialIndex);
+    }
+    
+    @Override
+    public boolean findIfShadowing(Vec3 origin, Vec3 direction)
+    {
+        Vec3 point_to_center = center.minus(origin);
+        double projection_length = point_to_center.dot(direction);
+        if (projection_length < 0)
+            return false; // intersection is "behind" ray
+        double projection_normal_length_sqr = point_to_center.squareMagnitude() - projection_length * projection_length;
+        if (projection_normal_length_sqr > radius_squared)
+            return false; // no intersection at all
+        if (point_to_center.squareMagnitude() < radius_squared)
+            return true; // point is inside sphere // NOTICE THIS IS THE DIFFERENCE
+        return true;
     }
 }

@@ -16,7 +16,7 @@ public class Plane extends Shape
     }
     
     @Override
-    public Intersection findRayIntersection(Vec3 origin, Vec3 direction)
+    public Intersection findRayIntersection(Vec3 origin, Vec3 direction, boolean shadowCheck)
     {
         double dirDotNorm = direction.dot(normal);
         if (Math.abs(dirDotNorm) < 0.01)
@@ -27,7 +27,9 @@ public class Plane extends Shape
         if (t == Double.NaN)
             return null; // plane is behind origin
         Vec3 intersection_position = origin.plus(direction.scaledBy(t));
-        //TODO maybe take opposite direction normal in certain cases?
-        return new Intersection(intersection_position, intersection_position, normal, direction, materialIndex);
+        if (intersection_position.minus(origin).squareMagnitude() < 0.01)
+            return null; // likely intersect with same plane twice
+        Vec3 hitNormal = normal.scaledBy(-dirDotNorm);
+        return new Intersection(intersection_position, hitNormal, direction, materialIndex);
     }
 }

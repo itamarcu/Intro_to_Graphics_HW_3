@@ -7,5 +7,5 @@ public abstract class Shape
         this.materialIndex = materialIndex;
     }
     
-    public abstract Intersection findRayIntersection(Vec3 origin, Vec3 direction);
+    public abstract Intersection findRayIntersection(Vec3 origin, Vec3 direction, boolean shadowCheck);
 }
