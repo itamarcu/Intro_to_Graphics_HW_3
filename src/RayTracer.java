@@ -13,7 +13,7 @@ public class RayTracer
     private int imageHeight;
     private Scene scene;
     private Camera camera;
-    private static String grayscale_string = "█▓▒▣ʘo•· ";
+    private static String grayscale_string = "█▓▒@ʘo•· ";
     private static boolean REVERSE_ASCII_BLACK_AND_WHITE = false;
     /**
      * Runs the ray tracer. Takes scene file, output image file and optional image size as input.
