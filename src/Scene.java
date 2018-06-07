@@ -94,8 +94,7 @@ class Scene
             double invCountOfShadowRays = 1.0 / shadowRayCount;
             double shadowRayShadowFraction = 1.0 / shadowRayCount / shadowRayCount * light.shadowIntensity;
             Vec3 lightWidthRight = reverseLightDirection.anyPerpendicular().scaledBy(light.width);
-            Vec3 lightWidthUp = lightWidthRight.cross(reverseLightDirection.normalized()).scaledBy(light.width);
-            boolean lightReaches = true;
+            Vec3 lightWidthDown = lightWidthRight.cross(reverseLightDirection.normalized()).scaledBy(light.width);
             double rayLength;
             for (int xx = 0; xx < shadowRayCount; xx++)
                 for (int yy = 0; yy < shadowRayCount; yy++)
@@ -103,28 +102,29 @@ class Scene
                     double randomUp = Math.random(), randomRight = Math.random();
                     Vec3 pointNearLight = light.position
                             .plus(lightWidthRight.scaledBy(
-                                    (-shadowRayCount / 2 + xx + randomRight) * invCountOfShadowRays))
-                            .plus(lightWidthUp.scaledBy(
-                                    (-shadowRayCount / 2 + yy + randomUp) * invCountOfShadowRays));
+                                    (-shadowRayCount / 2 + xx + randomRight - 0.5) * invCountOfShadowRays))
+                            .plus(lightWidthDown.scaledBy(
+                                    (-shadowRayCount / 2 + yy + randomUp - 0.5) * invCountOfShadowRays));
             
                     Vec3 reverseShadowDirection = pointNearLight.minus(start).normalized();
                     rayLength = start.minus(pointNearLight).magnitude();
+                    double fractionOfLightLeftInRay = 1.0;
                     for (Shape s : shapes)
                     {
                         Intersection shadowHit = s.findRayIntersection(start, reverseShadowDirection);
                         if (shadowHit != null && shadowHit.position.minus(start).magnitude() < rayLength)
                         {
-                            illumination -= shadowRayShadowFraction;
-                            if (shadowRayCount / 2 == xx || shadowRayCount / 2 == yy)
-                                lightReaches = false;
-                            break; //TODO transparency here?
+                            fractionOfLightLeftInRay -= (1 - getMaterial(s.materialIndex).transparency);
+                            // TODO  * light.shadowIntensity ??? (seems like it works without)
+                            if (fractionOfLightLeftInRay < 0)
+                            {
+                                fractionOfLightLeftInRay = 0;
+                                break; //TODO transparency here?
+                            }
                         }
                     }
+                    illumination -= shadowRayShadowFraction * (1 - fractionOfLightLeftInRay);
                 }
-            if (!lightReaches)
-                illumination *= (1 - light.shadowIntensity);
-            else
-                illumination = 1;
             
             Color lightAmount = light.color.scaledBy(illumination);
             
@@ -139,7 +139,7 @@ class Scene
                         * Math.pow(reflectionDirection.dot(hit.direction), mat.phongSpecularity)));
     
                 color = color.plus(
-                        diffuseColor.plus(specularColor).scaledBy((1 - mat.transparency)));
+                        diffuseColor.plus(specularColor).scaledBy(1 - mat.transparency));
             }
         }
         

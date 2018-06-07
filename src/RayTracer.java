@@ -15,6 +15,8 @@ public class RayTracer
     private Camera camera;
     private static String grayscale_string = "█▓▒@ʘo•· ";
     private static boolean REVERSE_ASCII_BLACK_AND_WHITE = false;
+    private static boolean ENABLE_SUPER_SAMPLING = false; // true will make it much slower
+    
     /**
      * Runs the ray tracer. Takes scene file, output image file and optional image size as input.
      */
@@ -228,18 +230,21 @@ public class RayTracer
     
     private byte[] raycastScene(Camera camera, Scene scene, int pixelWidth, int pixelHeight)
     {
-        boolean enableSuperSampling = false;
-        
+        if (scene.superSamplingLevel == 1)
+            ENABLE_SUPER_SAMPLING = false;
         double screenHeight = camera.screenWidth / pixelWidth * pixelHeight;
         double superSamplingFactor = 1.0 / scene.superSamplingLevel;
         byte[] rgbData = new byte[imageWidth * imageHeight * 3];
         Vec3 onePixelTowardsRight = camera.right.scaledBy(camera.screenWidth / pixelWidth);
-        Vec3 onePixelTowardsUp = camera.up.scaledBy(screenHeight / pixelHeight);
+        Vec3 onePixelTowardsDown = camera.up.scaledBy(-screenHeight / pixelHeight);
         Vec3 currentScreenPoint = camera.position
                 .plus(camera.forward.scaledBy(camera.screenDistance)) // forward by camera distance
                 .plus(camera.right.scaledBy(-camera.screenWidth / 2)) // left by half screen
                 .plus(camera.up.scaledBy(screenHeight / 2)); // up by half screen
-    
+        currentScreenPoint = currentScreenPoint
+                .plus(onePixelTowardsRight.scaledBy(0.5))
+                .plus(onePixelTowardsDown.scaledBy(0.5));
+        
         int ascii_print_width = 78;
         int ascii_x_skip = pixelWidth / ascii_print_width;
         int ascii_y_skip = pixelHeight / ascii_print_width * 2;
@@ -251,15 +256,15 @@ public class RayTracer
             for (int x = 0; x < pixelWidth; x++)
             {
                 Color avgColor = new Color(0, 0, 0);
-                if (enableSuperSampling)
+                if (ENABLE_SUPER_SAMPLING)
                 {
                     for (int xx = 0; xx < scene.superSamplingLevel; xx++)
                         for (int yy = 0; yy < scene.superSamplingLevel; yy++)
                         {
                             double randomUp = Math.random(), randomRight = Math.random();
                             Vec3 subPixelScreenPoint = currentScreenPoint
-                                    .plus(onePixelTowardsRight.scaledBy((xx + randomRight) * superSamplingFactor))
-                                    .plus(onePixelTowardsUp.scaledBy((yy + randomUp) * superSamplingFactor));
+                                    .plus(onePixelTowardsRight.scaledBy((xx + randomRight - 0.5) * superSamplingFactor))
+                                    .plus(onePixelTowardsDown.scaledBy((yy + randomUp - 0.5) * superSamplingFactor));
                             Vec3 rayDirection = (subPixelScreenPoint.minus(camera.position)).normalized();
                             Intersection intersection = scene.raycast(camera.position, rayDirection);
                             Color color = scene.getColor(intersection, 0);
@@ -288,8 +293,8 @@ public class RayTracer
                 System.out.println();
             currentScreenPoint = currentScreenPoint.minus(onePixelTowardsRight.scaledBy(pixelWidth)); // â†� â†� â†�
             // â†� â†�
-            currentScreenPoint = currentScreenPoint.minus(onePixelTowardsUp); // top to bottom
-    
+            currentScreenPoint = currentScreenPoint.plus(onePixelTowardsDown); // top to bottom
+            
             //            long currentSec = (System.currentTimeMillis() - startTime) / 1000;
             //            if (currentSec != lastSecPrinted)
             //            {

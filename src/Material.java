@@ -5,7 +5,7 @@ public class Material
     public final Color specularColor;
     public final Color reflectionColor;
     public final double phongSpecularity;
-    public final double transparency;
+    public final double transparency; // 0 = not transparent (opaque), 1 = fully transparent (invisible)
     
     public Material(Color diffuseColor, Color specularColor, Color reflectionColor,
                     double phongSpecularity, double transparency)
