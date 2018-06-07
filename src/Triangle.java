@@ -20,9 +20,9 @@ public class Triangle extends Shape
     }
     
     @Override
-    public Intersection findRayIntersection(Vec3 origin, Vec3 direction)
+    public Intersection findRayIntersection(Vec3 origin, Vec3 direction, boolean shadowCheck)
     {
-        Intersection planeIntersection = plane.findRayIntersection(origin, direction);
+        Intersection planeIntersection = plane.findRayIntersection(origin, direction, shadowCheck);
         if (planeIntersection == null)
             return null;
         Vec3 point = planeIntersection.position;
@@ -40,25 +40,4 @@ public class Triangle extends Shape
     
         return planeIntersection;
     }
-    
-    @Override
-    public boolean findIfShadowing(Vec3 origin, Vec3 direction)
-    {
-        Intersection planeIntersection = plane.findRayIntersection(origin, direction);
-        if (planeIntersection == null)
-            return false;
-        Vec3 point = planeIntersection.position;
-        Vec3 lineToPoint = point.minus(origin);
-        // check that the point is inside the triangle
-        for (int side = 0; side < 3; side++)
-        {
-            Vec3 V1 = vertices[side].minus(point);
-            Vec3 V2 = vertices[(side + 1) % 3].minus(point);
-            Vec3 normalToSide = V2.cross(V1).normalized();
-            double projOnNormToSide = lineToPoint.dot(normalToSide);
-            if (projOnNormToSide < 0)
-                return false;
-        }
-        return true;
     }
-}

@@ -31,7 +31,7 @@ class Scene
         double min_dist_sqr = Integer.MAX_VALUE;
         for (Shape shape : shapes)
         {
-            Intersection intersection = shape.findRayIntersection(point, direction);
+            Intersection intersection = shape.findRayIntersection(point, direction, false);
             if (intersection != null)
             {
                 double dist_sqr = point.minus(intersection.position).squareMagnitude();
@@ -115,10 +115,10 @@ class Scene
                     double fractionOfLightLeftInRay = 1.0;
                     for (Shape s : shapes)
                     {
-                        Intersection shadowHit = s.findRayIntersection(start, reverseShadowDirection);
+                        Intersection shadowHit = s.findRayIntersection(start.plus(reverseShadowDirection.scaledBy(0.01)), reverseShadowDirection, true);
                         if (shadowHit != null && shadowHit.position.minus(start).magnitude() < rayLength)
                         {
-                            fractionOfLightLeftInRay -= (1 - getMaterial(s.materialIndex).transparency);
+                            fractionOfLightLeftInRay *= (getMaterial(s.materialIndex).transparency);
                             if (fractionOfLightLeftInRay < 0)
                             {
                                 fractionOfLightLeftInRay = 0;
@@ -155,7 +155,7 @@ class Scene
         // Transparency color
         if (mat.transparency > 0)
         {
-            Intersection nextSurface = raycast(hit.position, hit.direction);
+            Intersection nextSurface = raycast(hit.position.plus(hit.direction.scaledBy(0.01)), hit.direction);
             color = color.plus(getColor(nextSurface, recursionCount + 1,
                     contribution * mat.transparency)
                     .scaledBy(mat.transparency));
